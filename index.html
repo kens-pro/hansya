@@ -72,6 +72,7 @@
       box-shadow: 0 16px 32px rgba(0,0,0,0.2), inset 0 6px 0 rgba(255,255,255,0.8);
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       color: #aaa; position: relative; cursor: pointer; z-index: 10;
+      /* アニメーション用トランジション削除（JS制御のため） */
     }
     .target-btn:active, .target-btn.pressed {
       transform: scale(0.95) translateY(4px);
@@ -81,7 +82,7 @@
     /* モード別スタイル */
     .target-btn.idle .face-icon { opacity: 0.5; }
 
-    /* Visual GO */
+    /* Visual GO: ピンク発光 */
     .target-btn.go-visual {
       background: radial-gradient(circle at 30% 30%, #ff8abf, #ff2a86);
       border-color: #ffcae0; color: #fff;
@@ -89,7 +90,7 @@
       transform: scale(1.02);
     }
 
-    /* Audio GO */
+    /* Audio GO: 振動エフェクト */
     .target-btn.go-audio {
       animation: shake 0.2s linear;
       box-shadow: 0 0 40px var(--accent);
@@ -99,7 +100,7 @@
     .face-icon { font-size: 70px; line-height: 1; margin-bottom: 8px; pointer-events: none; transition: 0.2s; }
     .btn-label { font-size: 24px; font-weight: 900; pointer-events: none; letter-spacing: 1px; }
 
-    /* 指示バブル */
+    /* ステータスバブル（指示出し） */
     .bubble {
       background: #fff; border: 4px solid var(--primary); border-radius: 20px;
       padding: 12px 10px; font-weight: 900; text-align: center;
@@ -109,18 +110,25 @@
       transition: transform 0.2s;
     }
     
-    /* 秒数表示 */
+    /* ヒット時の秒数表示（最前面・巨大） */
     .hit-eff {
       position: absolute;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%) scale(0.5);
-      font-size: 60px; font-weight: 900; color: var(--primary);
+      font-size: 60px; /* 巨大化 */
+      font-weight: 900;
+      color: var(--primary);
       text-shadow: 4px 4px 0 #fff, 0 0 20px rgba(255,255,255,0.8);
-      pointer-events: none; opacity: 0; z-index: 999;
+      pointer-events: none;
+      opacity: 0;
+      z-index: 999; /* ボタンより確実に手前 */
       white-space: nowrap;
       transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s;
     }
-    .hit-eff.show { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+    .hit-eff.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1.2); /* 飛び出す演出 */
+    }
 
     /* 下部コントロール */
     .controls { width: 100%; margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
@@ -135,12 +143,8 @@
       font-size: 12px; font-weight: 800; text-align: center; color: #666;
       background: rgba(255,255,255,0.6); padding: 8px; border-radius: 8px; margin-top: 4px;
     }
-    .vol-warning {
-      font-size: 11px; color: #ff4fa3; font-weight: 800; text-align: center;
-      background: #fff0f5; padding: 4px; border-radius: 4px;
-    }
 
-    /* モーダル */
+    /* 結果モーダル */
     .modal {
       display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.96);
       z-index: 1000; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto;
@@ -165,7 +169,17 @@
     }
     .btn-main:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,0.15); }
     
-    .note-text { font-size: 10px; color: #999; margin-top: 8px; line-height: 1.4; }
+    .note-text {
+      font-size: 10px; color: #999; margin-top: 8px; line-height: 1.4;
+    }
+
+    /* トースト通知（Alertの代わり） */
+    .toast {
+      position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: rgba(0,0,0,0.8); color: #fff; padding: 12px 24px; border-radius: 50px;
+      font-weight: 800; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 3000;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
     /* 紙吹雪 */
     .confetti { position: fixed; inset: 0; pointer-events: none; z-index: 2000; }
@@ -191,7 +205,7 @@
         <div class="face-icon" id="btnFace">▶</div>
         <div class="btn-label" id="btnText">WAIT</div>
       </div>
-      <!-- タイム表示 -->
+      <!-- タイム表示（ボタンの上に重なる） -->
       <div id="hitEffect" class="hit-eff">0.00秒</div>
     </div>
   </div>
@@ -202,10 +216,8 @@
       <button class="toggle-btn" onclick="setPlayers(2)">ふたりで対戦</button>
     </div>
     
-    <!-- 音が出ない時の注意書き -->
-    <div class="vol-warning">
-      ⚠️ 音が出ない時は「マナーモード」を解除してね<br>
-      (画面をタップすると音が有効になります)
+    <div class="note-text" style="text-align:center;">
+      ※音が出ない時はマナーモードを解除してください
     </div>
 
     <div id="rankArea" class="ranking-mini">
@@ -218,6 +230,7 @@
 <div id="resultModal" class="modal">
   <div class="logo" style="font-size:20px; transform:none; margin-bottom:0;">けっかはっぴょう</div>
   
+  <!-- 1P結果 -->
   <div id="res1P" class="result-box" style="display:none;">
     <div style="font-size:14px; font-weight:800; color:#888;">あなたの反射速度</div>
     <div class="score-big" id="scoreValue">0.00<span style="font-size:20px; margin-left:4px;">秒</span></div>
@@ -230,15 +243,17 @@
     </div>
 
     <div class="note-text">
-      ※端末の描画や音声出力の遅延により誤差が生じる場合があります。あくまで目安としてお楽しみください。
+      ※お使いの端末により結果には誤差が生じる場合があります。
     </div>
 
+    <!-- ランキング登録 -->
     <div style="margin-top:16px; border-top:2px dashed #eee; padding-top:10px;">
       <input type="text" id="inputName" placeholder="なまえ (4文字)" maxlength="4" style="text-align:center; font-weight:800; padding:8px; width:60%; border:2px solid #ddd; border-radius:8px;">
       <button onclick="saveScore()" style="padding:8px 16px; background:var(--yellow); border:none; border-radius:8px; font-weight:900; color:#543;">登録</button>
     </div>
   </div>
 
+  <!-- 2P結果 -->
   <div id="res2P" class="result-box" style="display:none;">
     <div id="winBadge" style="background:var(--primary); color:#fff; display:inline-block; padding:4px 12px; border-radius:20px; font-weight:900; margin-bottom:10px;">P1の勝ち！</div>
     <div style="display:flex; justify-content:space-around; align-items:flex-end;">
@@ -246,9 +261,10 @@
       <div style="font-size:20px; font-weight:900; color:#ccc;">vs</div>
       <div><div style="font-size:12px; font-weight:800;">P2 (おと)</div><div id="sP2" style="font-size:28px; font-weight:900;">0.00</div></div>
     </div>
-    <div class="note-text">※端末差を避けるため、同じ端末での対戦を推奨します。</div>
+    <div class="note-text">※同じ端末での対戦を推奨します。</div>
   </div>
 
+  <!-- インターミッション (P1->P2) -->
   <div id="intermission" style="display:none; text-align:center; margin-top:100px;">
     <div style="font-size:60px;">📱↺📱</div>
     <h2 style="color:var(--text);">P1 終了！</h2>
@@ -259,72 +275,93 @@
   <button id="closeBtn" class="btn-main" onclick="closeResult()" style="background:#888;">もう1回あそぶ</button>
 </div>
 
+<!-- 自作トースト通知 -->
+<div id="toast" class="toast">登録しました！</div>
+
+<!-- 紙吹雪レイヤー -->
 <div id="confetti" class="confetti"></div>
 
 <script>
 /**
- * Pico! Sound Reflex Battle DX v7 (Mobile Sound Fix)
- * iOS対策: タッチイベントでのアンロック、無音再生によるオーディオコンテキスト起動
+ * Pico! Sound Reflex Battle DX v8 (Sound Stability & No-Freeze)
+ * 修正1: AudioContextのSingleton化と、タッチイベントでの確実なResume処理
+ * 修正2: alert廃止、トースト通知の実装
  */
 
+// --- Audio System (Robust Mobile Fix) ---
 const AudioSys = (() => {
   let ctx = null;
 
-  // 強制アンロック（ユーザーの最初のタッチで実行）
-  const unlock = () => {
-    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
-    if (ctx.state !== 'running') {
-      ctx.resume().then(() => {
-        // 無音のバッファを一瞬再生して完全に目覚めさせる（iOS対策の定石）
-        const buffer = ctx.createBuffer(1, 1, 22050);
-        const source = ctx.createBufferSource();
+  // コンテキストの取得または作成（シングルトン）
+  const getCtx = () => {
+    if (!ctx) {
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    return ctx;
+  };
+
+  // 画面タッチ時に必ず呼ぶ関数（オーディオエンジンの強制起動）
+  const ensureRunning = () => {
+    const c = getCtx();
+    if (c.state === 'suspended') {
+      c.resume().then(() => {
+        // 無音バッファを一瞬再生してエンジンを暖機する（iOS Safari対策）
+        const buffer = c.createBuffer(1, 1, 22050);
+        const source = c.createBufferSource();
         source.buffer = buffer;
-        source.connect(ctx.destination);
+        source.connect(c.destination);
         source.start(0);
       });
     }
   };
 
   const getLatency = () => {
-    if (!ctx) return 0;
-    const base = ctx.baseLatency || 0;
-    const out = ctx.outputLatency || 0;
+    const c = getCtx();
+    const base = c.baseLatency || 0;
+    const out = c.outputLatency || 0;
     const total = base + out;
     return total > 0 ? total : 0.04; 
   };
   
   const beep = () => {
-    unlock(); // 念のため毎回確認
-    const osc = ctx.createOscillator();
-    const g = ctx.createGain();
+    const c = getCtx();
+    if(c.state === 'suspended') c.resume();
+    
+    const osc = c.createOscillator();
+    const g = c.createGain();
     osc.type = 'square';
-    osc.frequency.setValueAtTime(1000, ctx.currentTime); 
-    g.gain.setValueAtTime(0.5, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
-    osc.connect(g); g.connect(ctx.destination);
-    osc.start(); osc.stop(ctx.currentTime + 0.1);
+    osc.frequency.setValueAtTime(1000, c.currentTime); 
+    // アタック強め
+    g.gain.setValueAtTime(0.5, c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.01, c.currentTime + 0.08);
+    osc.connect(g); g.connect(c.destination);
+    osc.start(); osc.stop(c.currentTime + 0.1);
   };
 
   const win = () => {
-    unlock();
-    const o = ctx.createOscillator(); const g = ctx.createGain();
-    o.type='triangle'; o.frequency.setValueAtTime(880, ctx.currentTime);
-    g.gain.setValueAtTime(0.3, ctx.currentTime);
-    o.frequency.linearRampToValueAtTime(1760, ctx.currentTime+0.1);
-    g.gain.linearRampToValueAtTime(0, ctx.currentTime+0.3);
-    o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+0.3);
+    const c = getCtx();
+    if(c.state === 'suspended') c.resume();
+
+    const o = c.createOscillator(); const g = c.createGain();
+    o.type='triangle'; o.frequency.setValueAtTime(880, c.currentTime);
+    g.gain.setValueAtTime(0.3, c.currentTime);
+    o.frequency.linearRampToValueAtTime(1760, c.currentTime+0.1);
+    g.gain.linearRampToValueAtTime(0, c.currentTime+0.3);
+    o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime+0.3);
   };
 
   const bad = () => {
-    unlock();
-    const o = ctx.createOscillator(); const g = ctx.createGain();
-    o.type='sawtooth'; o.frequency.setValueAtTime(150, ctx.currentTime);
-    g.gain.setValueAtTime(0.3, ctx.currentTime);
-    g.gain.linearRampToValueAtTime(0, ctx.currentTime+0.2);
-    o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+0.2);
+    const c = getCtx();
+    if(c.state === 'suspended') c.resume();
+
+    const o = c.createOscillator(); const g = c.createGain();
+    o.type='sawtooth'; o.frequency.setValueAtTime(150, c.currentTime);
+    g.gain.setValueAtTime(0.3, c.currentTime);
+    g.gain.linearRampToValueAtTime(0, c.currentTime+0.2);
+    o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime+0.2);
   };
 
-  return { unlock, beep, win, bad, getLatency };
+  return { ensureRunning, beep, win, bad, getLatency };
 })();
 
 // --- Helper ---
@@ -333,7 +370,6 @@ function toSec(ms) { return (ms/1000).toFixed(2); }
 
 // --- Game State ---
 const ROUNDS = 5;
-
 let state = {
   running: false,
   players: 1,
@@ -352,7 +388,7 @@ const els = {
   btn: $('gameBtn'), face: $('btnFace'), txt: $('btnText'),
   bub: $('msgBubble'), hit: $('hitEffect'), ctrl: $('controls'),
   modal: $('resultModal'), res1: $('res1P'), res2: $('res2P'), inter: $('intermission'),
-  topRank: $('topRankVal')
+  topRank: $('topRankVal'), toast: $('toast')
 };
 
 // --- Logic ---
@@ -362,21 +398,25 @@ function setPlayers(n) {
   setTimeout(startGame, 200);
 }
 
-// 画面のどこかをタッチしたらオーディオをアンロックする
-const unlockEvents = ['touchstart', 'click'];
-const doUnlock = () => {
-  AudioSys.unlock();
-  unlockEvents.forEach(e => document.removeEventListener(e, doUnlock));
-};
-unlockEvents.forEach(e => document.addEventListener(e, doUnlock, {passive: false, once:true}));
-
-
-els.btn.addEventListener('pointerdown', (e) => {
-  e.preventDefault();
-  AudioSys.unlock(); // ここでも念のため
-  if (state.running) handleTap();
+// 画面全体のどこを触ってもオーディオを有効化するイベントを登録
+// （ボタンだけでなく、誤タップ含めてどこでも触れば音が鳴る準備をする）
+['touchstart', 'pointerdown', 'click'].forEach(evt => {
+  document.addEventListener(evt, () => {
+    AudioSys.ensureRunning();
+  }, { passive: false });
 });
 
+// ビッグボタンのイベント
+els.btn.addEventListener('pointerdown', (e) => {
+  e.preventDefault(); // ズーム等を防ぐ
+  AudioSys.ensureRunning(); // ここでも念押し
+
+  if (state.running) {
+    handleTap();
+  }
+});
+
+// ページロード時に即開始
 window.onload = () => {
   setTimeout(startGame, 100); 
 };
@@ -392,10 +432,12 @@ function startGame() {
 function startPhase(mode) {
   state.mode = mode;
   state.step = 0;
+  
   updateInstruction();
   resetBtn();
   if(mode==='visual') setFace('( •̀ω•́ )', 'ピンクでポン！');
   else setFace('( ˘ω˘ )👂', 'おとでポン！');
+  
   setTimeout(nextTrial, 1200);
 }
 
@@ -409,10 +451,14 @@ function updateInstruction() {
 
 function nextTrial() {
   if (state.step >= ROUNDS) {
-    if (state.mode === 'visual') startPhase('audio');
-    else endPlayerTurn();
+    if (state.mode === 'visual') {
+      startPhase('audio');
+    } else {
+      endPlayerTurn();
+    }
     return;
   }
+
   resetBtn();
   state.wait = true;
   const delay = 2000 + Math.random() * 2500;
@@ -421,6 +467,7 @@ function nextTrial() {
 
 function goSignal() {
   state.wait = false;
+  
   if (state.mode === 'visual') {
     els.btn.classList.add('go-visual');
     setFace('( ﾟдﾟ)!', '今だっ！');
@@ -430,9 +477,13 @@ function goSignal() {
       });
     });
   } else {
+    // 音が鳴る前に強制的にコンテキストの状態を確認
+    AudioSys.ensureRunning();
     AudioSys.beep();
+    
     els.btn.classList.add('go-audio');
     setFace('( ﾟдﾟ)!', '今だっ！');
+    
     const lat = AudioSys.getLatency(); 
     state.goTime = performance.now() + (lat * 1000);
   }
@@ -546,26 +597,47 @@ function closeResult() {
   startGame();
 }
 
+// --- Ranking (Fixed Freeze) ---
 function saveScore() {
   const name = $('inputName').value || 'ゲスト';
   const valText = $('scoreValue').innerText.replace('秒','');
   const val = parseFloat(valText);
   if(!val) return;
   
-  let ranks = JSON.parse(localStorage.getItem('pico_ranks_v2') || '[]');
-  ranks.push({n:name, s:val});
-  ranks.sort((a,b)=>a.s - b.s); 
-  localStorage.setItem('pico_ranks_v2', JSON.stringify(ranks.slice(0,1))); 
-  
-  alert('登録しました！');
-  $('inputName').value = '';
-  loadRank();
+  // LocalStorage操作
+  try {
+    let ranks = JSON.parse(localStorage.getItem('pico_ranks_v2') || '[]');
+    ranks.push({n:name, s:val});
+    ranks.sort((a,b)=>a.s - b.s); 
+    localStorage.setItem('pico_ranks_v2', JSON.stringify(ranks.slice(0,1))); 
+    loadRank();
+    
+    // Alertをやめてトースト表示
+    showToast();
+    
+    // 入力をクリア
+    $('inputName').value = '';
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+function showToast() {
+  els.toast.classList.add('show');
+  setTimeout(() => els.toast.classList.remove('show'), 2000);
 }
 
 function loadRank() {
-  let ranks = JSON.parse(localStorage.getItem('pico_ranks_v2') || '[]');
-  if(ranks.length) els.topRank.textContent = `${ranks[0].n} (${ranks[0].s.toFixed(2)}秒)`;
-  else els.topRank.textContent = '---';
+  try {
+    let ranks = JSON.parse(localStorage.getItem('pico_ranks_v2') || '[]');
+    if(ranks.length) {
+      els.topRank.textContent = `${ranks[0].n} (${ranks[0].s.toFixed(2)}秒)`;
+    } else {
+      els.topRank.textContent = '---';
+    }
+  } catch(e) {
+    els.topRank.textContent = '---';
+  }
 }
 
 function setFace(f,t) { els.face.textContent=f; els.txt.textContent=t; }
