@@ -19,6 +19,8 @@
       --text: #4a3b3b;
       --bg-ptn: #fff5fb;
       --font: "M PLUS Rounded 1c", sans-serif;
+      --danger: #ff5f5f;
+      --success: #36c97e;
     }
 
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
@@ -32,7 +34,6 @@
       padding: max(10px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
     }
 
-    /* 筐体デザイン */
     .game-body {
       width: 100%; max-width: 480px;
       background: linear-gradient(180deg, #ffffff, #f4f8fb);
@@ -51,7 +52,6 @@
       display: inline-block; transform: rotate(-2deg); box-shadow: 0 4px 0 rgba(0,0,0,0.1);
     }
 
-    /* メインスクリーン */
     .screen {
       background: #eef8ff; border-radius: 24px; border: 4px solid #cceeff;
       box-shadow: inset 0 4px 12px rgba(0,0,0,0.05);
@@ -59,12 +59,10 @@
       padding: 16px; position: relative; overflow: hidden;
     }
 
-    /* ビッグボタンエリア */
     .big-btn-area {
       flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; position: relative;
     }
     
-    /* 物理ボタン風デザイン */
     .target-btn {
       width: 240px; height: 240px; border-radius: 50%;
       background: linear-gradient(145deg, #f0f0f0, #d9d9d9);
@@ -72,17 +70,14 @@
       box-shadow: 0 16px 32px rgba(0,0,0,0.2), inset 0 6px 0 rgba(255,255,255,0.8);
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       color: #aaa; position: relative; cursor: pointer; z-index: 10;
-      /* アニメーション用トランジション削除（JS制御のため） */
     }
     .target-btn:active, .target-btn.pressed {
       transform: scale(0.95) translateY(4px);
       box-shadow: 0 4px 8px rgba(0,0,0,0.2), inset 0 6px 0 rgba(0,0,0,0.05);
     }
     
-    /* モード別スタイル */
     .target-btn.idle .face-icon { opacity: 0.5; }
 
-    /* Visual GO: ピンク発光 */
     .target-btn.go-visual {
       background: radial-gradient(circle at 30% 30%, #ff8abf, #ff2a86);
       border-color: #ffcae0; color: #fff;
@@ -90,7 +85,6 @@
       transform: scale(1.02);
     }
 
-    /* Audio GO: 振動エフェクト */
     .target-btn.go-audio {
       animation: shake 0.2s linear;
       box-shadow: 0 0 40px var(--accent);
@@ -100,7 +94,6 @@
     .face-icon { font-size: 70px; line-height: 1; margin-bottom: 8px; pointer-events: none; transition: 0.2s; }
     .btn-label { font-size: 24px; font-weight: 900; pointer-events: none; letter-spacing: 1px; }
 
-    /* ステータスバブル（指示出し） */
     .bubble {
       background: #fff; border: 4px solid var(--primary); border-radius: 20px;
       padding: 12px 10px; font-weight: 900; text-align: center;
@@ -110,27 +103,25 @@
       transition: transform 0.2s;
     }
     
-    /* ヒット時の秒数表示（最前面・巨大） */
     .hit-eff {
       position: absolute;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%) scale(0.5);
-      font-size: 60px; /* 巨大化 */
+      font-size: 60px;
       font-weight: 900;
       color: var(--primary);
       text-shadow: 4px 4px 0 #fff, 0 0 20px rgba(255,255,255,0.8);
       pointer-events: none;
       opacity: 0;
-      z-index: 999; /* ボタンより確実に手前 */
+      z-index: 999;
       white-space: nowrap;
       transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s;
     }
     .hit-eff.show {
       opacity: 1;
-      transform: translate(-50%, -50%) scale(1.2); /* 飛び出す演出 */
+      transform: translate(-50%, -50%) scale(1.2);
     }
 
-    /* 下部コントロール */
     .controls { width: 100%; margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
     .toggle-group { display: flex; background: #e0e0e0; border-radius: 12px; padding: 4px; }
     .toggle-btn {
@@ -144,7 +135,44 @@
       background: rgba(255,255,255,0.6); padding: 8px; border-radius: 8px; margin-top: 4px;
     }
 
-    /* 結果モーダル */
+    .status-mini {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .status-card {
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+      color: #666;
+      background: rgba(255,255,255,0.75);
+      padding: 8px;
+      border-radius: 8px;
+      border: 2px solid rgba(255,255,255,0.8);
+    }
+
+    .life-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      margin-top: 3px;
+    }
+
+    .heart {
+      font-size: 18px;
+      line-height: 1;
+      transition: 0.2s;
+      filter: drop-shadow(0 0 4px rgba(255,79,163,0.2));
+    }
+
+    .heart.lost {
+      opacity: 0.22;
+      transform: scale(0.85);
+      filter: none;
+    }
+
     .modal {
       display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.96);
       z-index: 1000; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto;
@@ -156,10 +184,74 @@
       padding: 24px; text-align: center; width: 100%; max-width: 340px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.15); margin-bottom: 20px; margin-top: 40px;
     }
+
+    .result-box.danger-box {
+      border-color: #ffb1b1;
+    }
+
     .score-big { font-size: 56px; font-weight: 900; color: var(--primary); line-height: 1; margin: 10px 0; letter-spacing: -2px;}
     .edu-msg {
       background: #f0faff; border: 2px dashed var(--accent); border-radius: 12px;
       padding: 12px; font-size: 13px; font-weight: 700; color: #445; text-align: left;
+    }
+
+    .promo-card {
+      margin-top: 16px;
+      background: linear-gradient(180deg, #fff7fc, #f7fdff);
+      border: 3px solid #ffd2e8;
+      border-radius: 20px;
+      padding: 16px;
+      text-align: left;
+    }
+
+    .promo-title {
+      font-size: 16px;
+      font-weight: 900;
+      color: var(--primary-d);
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .promo-text {
+      font-size: 13px;
+      line-height: 1.7;
+      color: #555;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .promo-links {
+      display: grid;
+      gap: 10px;
+    }
+
+    .promo-btn {
+      display: block;
+      text-decoration: none;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 900;
+      padding: 12px 14px;
+      border-radius: 14px;
+      color: #fff;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.12);
+    }
+
+    .promo-btn.younger {
+      background: linear-gradient(180deg, #59d8ff, #1db8ea);
+    }
+
+    .promo-btn.older {
+      background: linear-gradient(180deg, #ff78b7, #ef4b95);
+    }
+
+    .promo-note {
+      font-size: 10px;
+      color: #888;
+      line-height: 1.5;
+      margin-top: 10px;
+      text-align: center;
+      font-weight: 700;
     }
     
     .btn-main {
@@ -173,7 +265,6 @@
       font-size: 10px; color: #999; margin-top: 8px; line-height: 1.4;
     }
 
-    /* トースト通知（Alertの代わり） */
     .toast {
       position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
       background: rgba(0,0,0,0.8); color: #fff; padding: 12px 24px; border-radius: 50px;
@@ -181,7 +272,6 @@
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    /* 紙吹雪 */
     .confetti { position: fixed; inset: 0; pointer-events: none; z-index: 2000; }
     .particle { position: absolute; width: 12px; height: 12px; animation: fall linear forwards; }
     @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
@@ -200,12 +290,10 @@
     <div id="msgBubble" class="bubble">準備中...</div>
     
     <div class="big-btn-area">
-      <!-- メインボタン -->
       <div id="gameBtn" class="target-btn idle">
         <div class="face-icon" id="btnFace">▶</div>
         <div class="btn-label" id="btnText">WAIT</div>
       </div>
-      <!-- タイム表示（ボタンの上に重なる） -->
       <div id="hitEffect" class="hit-eff">0.00秒</div>
     </div>
   </div>
@@ -214,6 +302,17 @@
     <div class="toggle-group">
       <button class="toggle-btn active" onclick="setPlayers(1)">ひとりであそぶ</button>
       <button class="toggle-btn" onclick="setPlayers(2)">ふたりで対戦</button>
+    </div>
+
+    <div class="status-mini">
+      <div class="status-card">
+        ミス回数
+        <div class="life-wrap" id="lifeWrap">---</div>
+      </div>
+      <div class="status-card">
+        のこり
+        <div id="remainWrap" style="margin-top:3px; font-size:16px; color:#444;">5回</div>
+      </div>
     </div>
     
     <div class="note-text" style="text-align:center;">
@@ -226,11 +325,9 @@
   </div>
 </div>
 
-<!-- 結果画面 -->
 <div id="resultModal" class="modal">
   <div class="logo" style="font-size:20px; transform:none; margin-bottom:0;">けっかはっぴょう</div>
   
-  <!-- 1P結果 -->
   <div id="res1P" class="result-box" style="display:none;">
     <div style="font-size:14px; font-weight:800; color:#888;">あなたの反射速度</div>
     <div class="score-big" id="scoreValue">0.00<span style="font-size:20px; margin-left:4px;">秒</span></div>
@@ -246,14 +343,44 @@
       ※お使いの端末により結果には誤差が生じる場合があります。
     </div>
 
-    <!-- ランキング登録 -->
     <div style="margin-top:16px; border-top:2px dashed #eee; padding-top:10px;">
       <input type="text" id="inputName" placeholder="なまえ (4文字)" maxlength="4" style="text-align:center; font-weight:800; padding:8px; width:60%; border:2px solid #ddd; border-radius:8px;">
       <button onclick="saveScore()" style="padding:8px 16px; background:var(--yellow); border:none; border-radius:8px; font-weight:900; color:#543;">登録</button>
     </div>
+
+    <div class="promo-card">
+      <div class="promo-title">すごい集中力です。次は音楽の楽しさへ。</div>
+      <div class="promo-text">
+        最後までチャレンジできたのは、お子さまの「聞く力」や「集中する力」のひとつの表れかもしれません。遊びの次は、本物の音楽体験へ。年齢に合ったヤマハ音楽教室の無料体験レッスンをご覧ください。
+      </div>
+
+      <div class="promo-links">
+        <a
+          href="https://kens-pro.github.io/primary3/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="promo-btn younger"
+        >
+          年少さんのヤマハ音楽教室<br>無料体験レッスン詳細はこちら！
+        </a>
+
+        <a
+          href="https://kens-pro.github.io/primary45/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="promo-btn older"
+        >
+          年中・年長さんのヤマハ音楽教室<br>無料体験レッスン詳細はこちら！
+        </a>
+      </div>
+
+      <div class="promo-note">
+        ※ゲーム結果は聴力診断ではありません。<br>
+        音楽を楽しむきっかけとして、無料体験レッスンをご活用ください。
+      </div>
+    </div>
   </div>
 
-  <!-- 2P結果 -->
   <div id="res2P" class="result-box" style="display:none;">
     <div id="winBadge" style="background:var(--primary); color:#fff; display:inline-block; padding:4px 12px; border-radius:20px; font-weight:900; margin-bottom:10px;">P1の勝ち！</div>
     <div style="display:flex; justify-content:space-around; align-items:flex-end;">
@@ -264,7 +391,6 @@
     <div class="note-text">※同じ端末での対戦を推奨します。</div>
   </div>
 
-  <!-- インターミッション (P1->P2) -->
   <div id="intermission" style="display:none; text-align:center; margin-top:100px;">
     <div style="font-size:60px;">📱↺📱</div>
     <h2 style="color:var(--text);">P1 終了！</h2>
@@ -272,27 +398,61 @@
     <button onclick="startNextPlayer()" class="btn-main">P2 スタート！</button>
   </div>
 
+  <div id="gameoverBox" class="result-box danger-box" style="display:none;">
+    <div style="font-size:14px; font-weight:800; color:#888;">ゲームオーバー</div>
+    <div class="score-big" style="color:var(--danger); font-size:42px;">おてつき 3回</div>
+    <div id="gameoverDetail" style="font-weight:800; color:#ff7a7a; margin-bottom:12px;"></div>
+
+    <div class="promo-card">
+      <div class="promo-title">聞き分けがむずかしくても大丈夫。</div>
+      <div class="promo-text">
+        音楽は、正解することより「楽しい」「やってみたい」から始まります。お子さまの年齢に合ったヤマハ音楽教室の無料体験レッスンで、音とふれあう第一歩を見つけてみませんか。
+      </div>
+
+      <div class="promo-links">
+        <a
+          href="https://kens-pro.github.io/primary3/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="promo-btn younger"
+        >
+          年少さんのヤマハ音楽教室<br>無料体験レッスン詳細はこちら！
+        </a>
+
+        <a
+          href="https://kens-pro.github.io/primary45/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="promo-btn older"
+        >
+          年中・年長さんのヤマハ音楽教室<br>無料体験レッスン詳細はこちら！
+        </a>
+      </div>
+
+      <div class="promo-note">
+        ※ゲーム結果は聴力診断ではありません。<br>
+        音楽を楽しむきっかけとして、無料体験レッスンをご活用ください。
+      </div>
+    </div>
+  </div>
+
   <button id="closeBtn" class="btn-main" onclick="closeResult()" style="background:#888;">もう1回あそぶ</button>
 </div>
 
-<!-- 自作トースト通知 -->
 <div id="toast" class="toast">登録しました！</div>
-
-<!-- 紙吹雪レイヤー -->
 <div id="confetti" class="confetti"></div>
 
 <script>
 /**
- * Pico! Sound Reflex Battle DX v8 (Sound Stability & No-Freeze)
- * 修正1: AudioContextのSingleton化と、タッチイベントでの確実なResume処理
- * 修正2: alert廃止、トースト通知の実装
+ * Pico! Sound Reflex Battle DX
+ * 追加:
+ * - おてつき3回でゲームオーバー
+ * - 体験レッスン導線（クリア時 / ゲームオーバー時）
  */
 
-// --- Audio System (Robust Mobile Fix) ---
 const AudioSys = (() => {
   let ctx = null;
 
-  // コンテキストの取得または作成（シングルトン）
   const getCtx = () => {
     if (!ctx) {
       ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -300,12 +460,10 @@ const AudioSys = (() => {
     return ctx;
   };
 
-  // 画面タッチ時に必ず呼ぶ関数（オーディオエンジンの強制起動）
   const ensureRunning = () => {
     const c = getCtx();
     if (c.state === 'suspended') {
       c.resume().then(() => {
-        // 無音バッファを一瞬再生してエンジンを暖機する（iOS Safari対策）
         const buffer = c.createBuffer(1, 1, 22050);
         const source = c.createBufferSource();
         source.buffer = buffer;
@@ -331,7 +489,6 @@ const AudioSys = (() => {
     const g = c.createGain();
     osc.type = 'square';
     osc.frequency.setValueAtTime(1000, c.currentTime); 
-    // アタック強め
     g.gain.setValueAtTime(0.5, c.currentTime);
     g.gain.exponentialRampToValueAtTime(0.01, c.currentTime + 0.08);
     osc.connect(g); g.connect(c.destination);
@@ -364,12 +521,12 @@ const AudioSys = (() => {
   return { ensureRunning, beep, win, bad, getLatency };
 })();
 
-// --- Helper ---
 function fmtTime(ms) { return (ms / 1000).toFixed(2) + "秒"; }
 function toSec(ms) { return (ms/1000).toFixed(2); }
 
-// --- Game State ---
 const ROUNDS = 5;
+const MAX_MISS = 3;
+
 let state = {
   running: false,
   players: 1,
@@ -379,53 +536,77 @@ let state = {
   wait: false,
   goTime: 0,
   timer: null,
+  misses: 0,
   recs: { p1:{v:[], a:[]}, p2:{v:[], a:[]} }
 };
 
-// --- DOM ---
 const $ = id => document.getElementById(id);
 const els = {
   btn: $('gameBtn'), face: $('btnFace'), txt: $('btnText'),
   bub: $('msgBubble'), hit: $('hitEffect'), ctrl: $('controls'),
   modal: $('resultModal'), res1: $('res1P'), res2: $('res2P'), inter: $('intermission'),
-  topRank: $('topRankVal'), toast: $('toast')
+  topRank: $('topRankVal'), toast: $('toast'),
+  closeBtn: $('closeBtn'),
+  lifeWrap: $('lifeWrap'),
+  remainWrap: $('remainWrap'),
+  gameoverBox: $('gameoverBox'),
+  gameoverDetail: $('gameoverDetail')
 };
 
-// --- Logic ---
+function renderLives() {
+  els.lifeWrap.innerHTML = '';
+  for (let i = 0; i < MAX_MISS; i++) {
+    const span = document.createElement('span');
+    span.className = `heart ${i < (MAX_MISS - state.misses) ? '' : 'lost'}`;
+    span.textContent = '❤';
+    els.lifeWrap.appendChild(span);
+  }
+  const remainTrials = Math.max(0, ROUNDS - state.step);
+  els.remainWrap.textContent = `${remainTrials}回`;
+}
+
 function setPlayers(n) {
   state.players = n;
   document.querySelectorAll('.toggle-btn').forEach((b,i) => b.classList.toggle('active', i===(n-1)));
   setTimeout(startGame, 200);
 }
 
-// 画面全体のどこを触ってもオーディオを有効化するイベントを登録
-// （ボタンだけでなく、誤タップ含めてどこでも触れば音が鳴る準備をする）
 ['touchstart', 'pointerdown', 'click'].forEach(evt => {
   document.addEventListener(evt, () => {
     AudioSys.ensureRunning();
   }, { passive: false });
 });
 
-// ビッグボタンのイベント
 els.btn.addEventListener('pointerdown', (e) => {
-  e.preventDefault(); // ズーム等を防ぐ
-  AudioSys.ensureRunning(); // ここでも念押し
+  e.preventDefault();
+  AudioSys.ensureRunning();
 
   if (state.running) {
     handleTap();
   }
 });
 
-// ページロード時に即開始
 window.onload = () => {
   setTimeout(startGame, 100); 
 };
 
-function startGame() {
+function resetRunState() {
   state.running = true;
   state.curP = 1;
+  state.step = 0;
+  state.wait = false;
+  state.goTime = 0;
+  state.misses = 0;
   state.recs = { p1:{v:[], a:[]}, p2:{v:[], a:[]} };
-  els.ctrl.style.opacity = '0.5'; els.ctrl.style.pointerEvents = 'none';
+  renderLives();
+}
+
+function startGame() {
+  clearTimeout(state.timer);
+  resetRunState();
+  els.ctrl.style.opacity = '0.5';
+  els.ctrl.style.pointerEvents = 'none';
+  els.modal.classList.remove('show');
   startPhase('visual');
 }
 
@@ -437,7 +618,8 @@ function startPhase(mode) {
   resetBtn();
   if(mode==='visual') setFace('( •̀ω•́ )', 'ピンクでポン！');
   else setFace('( ˘ω˘ )👂', 'おとでポン！');
-  
+
+  renderLives();
   setTimeout(nextTrial, 1200);
 }
 
@@ -461,6 +643,7 @@ function nextTrial() {
 
   resetBtn();
   state.wait = true;
+  renderLives();
   const delay = 2000 + Math.random() * 2500;
   state.timer = setTimeout(goSignal, delay);
 }
@@ -477,7 +660,6 @@ function goSignal() {
       });
     });
   } else {
-    // 音が鳴る前に強制的にコンテキストの状態を確認
     AudioSys.ensureRunning();
     AudioSys.beep();
     
@@ -493,9 +675,19 @@ function handleTap() {
   if (state.wait) {
     clearTimeout(state.timer);
     AudioSys.bad();
-    els.bub.textContent = 'あわてないで！（やりなおし）';
-    setFace('(>_<)', 'おてつき');
     state.wait = false;
+    state.misses++;
+    renderLives();
+
+    els.bub.textContent = 'あわてないで！（おてつき）';
+    setFace('(>_<)', 'ミス！');
+
+    if (state.misses >= MAX_MISS) {
+      state.running = false;
+      setTimeout(showGameOver, 900);
+      return;
+    }
+
     setTimeout(() => {
       updateInstruction(); 
       resetBtn();
@@ -523,6 +715,7 @@ function handleTap() {
     setTimeout(() => els.hit.classList.remove('show'), 800);
 
     state.step++;
+    renderLives();
     setTimeout(nextTrial, 800);
   }
 }
@@ -538,8 +731,9 @@ function endPlayerTurn() {
     els.modal.classList.add('show');
     els.res1.style.display = 'none';
     els.res2.style.display = 'none';
+    els.gameoverBox.style.display = 'none';
     els.inter.style.display = 'block';
-    $('closeBtn').style.display = 'none';
+    els.closeBtn.style.display = 'none';
   } else {
     showResult();
   }
@@ -548,13 +742,16 @@ function endPlayerTurn() {
 function startNextPlayer() {
   els.modal.classList.remove('show');
   state.curP = 2;
+  state.misses = 0;
+  renderLives();
   startPhase('visual');
 }
 
 function showResult() {
   els.modal.classList.add('show');
   els.inter.style.display = 'none';
-  $('closeBtn').style.display = 'block';
+  els.closeBtn.style.display = 'block';
+  els.gameoverBox.style.display = 'none';
   
   fireConfetti();
   
@@ -592,30 +789,45 @@ function showResult() {
   }
 }
 
+function showGameOver() {
+  clearTimeout(state.timer);
+  state.wait = false;
+  state.goTime = 0;
+
+  els.modal.classList.add('show');
+  els.res1.style.display = 'none';
+  els.res2.style.display = 'none';
+  els.inter.style.display = 'none';
+  els.gameoverBox.style.display = 'block';
+  els.closeBtn.style.display = 'block';
+
+  const totalGood =
+    state.recs.p1.v.length +
+    state.recs.p1.a.length +
+    state.recs.p2.v.length +
+    state.recs.p2.a.length;
+
+  els.gameoverDetail.textContent = `成功回数: ${totalGood}回 / おてつき: ${state.misses}回`;
+}
+
 function closeResult() {
   els.modal.classList.remove('show');
   startGame();
 }
 
-// --- Ranking (Fixed Freeze) ---
 function saveScore() {
   const name = $('inputName').value || 'ゲスト';
   const valText = $('scoreValue').innerText.replace('秒','');
   const val = parseFloat(valText);
   if(!val) return;
   
-  // LocalStorage操作
   try {
     let ranks = JSON.parse(localStorage.getItem('pico_ranks_v2') || '[]');
     ranks.push({n:name, s:val});
     ranks.sort((a,b)=>a.s - b.s); 
     localStorage.setItem('pico_ranks_v2', JSON.stringify(ranks.slice(0,1))); 
     loadRank();
-    
-    // Alertをやめてトースト表示
     showToast();
-    
-    // 入力をクリア
     $('inputName').value = '';
   } catch(e) {
     console.error(e);
@@ -641,6 +853,7 @@ function loadRank() {
 }
 
 function setFace(f,t) { els.face.textContent=f; els.txt.textContent=t; }
+
 function fireConfetti() {
   $('confetti').innerHTML = '';
   const c = ['#f0f', '#0ff', '#ff0', '#0f0'];
@@ -654,6 +867,7 @@ function fireConfetti() {
 }
 
 loadRank();
+renderLives();
 </script>
 </body>
 </html>
